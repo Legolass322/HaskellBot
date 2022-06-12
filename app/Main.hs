@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Text (Text)
+import Data.Text (Text, pack, append)
+import           Control.Applicative              ((<|>))
 import qualified Telegram.Bot.API          as Telegram
 import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Debug
@@ -26,7 +27,7 @@ data Action
 -- | Bot application.
 bot :: BotApp Model Action
 bot = BotApp
-  { botInitialModel = Model 0
+  { botInitialModel = (Model 0 "")
   , botAction = flip handleUpdate
   , botHandler = handleAction
   , botJobs = []
@@ -35,20 +36,19 @@ bot = BotApp
 -- | How to process incoming 'Telegram.Update's
 -- and turn them into 'Action's.
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
-handleUpdate _ = parseUpdate $ 
-    Name <$> text <$> command "name" <|>
-    Grow    
+handleUpdate _ = parseUpdate $
+    Name <$> command "name" 
 
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name) = case action of
     NoAction -> pure model
     Name newName -> (Model size newName) <# do
-        replyText "Name changed"
+        replyText (append (pack(show(size))) name)
         pure NoAction
     Grow -> (Model (size + 1) name) <# do
         replyText "Grow + 1"
-        pare NoAction
+        pure NoAction
 
 
 -- | Run bot with a given 'Telegram.Token'.
