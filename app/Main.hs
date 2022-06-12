@@ -37,7 +37,7 @@ bot = BotApp
 -- and turn them into 'Action's.
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
 handleUpdate _ = parseUpdate $
-    Name <$> command "name" 
+    (Name <$> command "name" <|> Grow <$ command "grow")
 
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
@@ -47,7 +47,7 @@ handleAction action model@(Model size name) = case action of
         replyText (append (pack(show(size))) name)
         pure NoAction
     Grow -> (Model (size + 1) name) <# do
-        replyText "Grow + 1"
+        replyText (append (pack(show(size))) name)
         pure NoAction
 
 
@@ -60,5 +60,5 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    setEnv "TELEGRAM_BOT_TOKEN" "2026002626:AAE_oOm3jXXJ2lsZJ_0TvsSPpF13W_lqw6I"
+    setEnv "TELEGRAM_BOT_TOKEN" "Your tg token"
     getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
