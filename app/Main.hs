@@ -10,6 +10,7 @@ import           Telegram.Bot.Simple.UpdateParser
 import           Telegram.Bot.API.Types 
 import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.API.GettingUpdates
+import           Ranking
 import System.Environment
 
 
