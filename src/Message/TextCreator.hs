@@ -2,7 +2,8 @@
 module Message.TextCreator where 
 
 import Data.Text (Text)
-import qualified Data.Text as T 
+import qualified Data.Text as T
+import Data.Monoid
 
 -- >>> changeNameMessageText "someOldName" "newCoolName"
 -- "Now your someOldName is newCoolName!"
