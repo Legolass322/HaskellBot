@@ -16,7 +16,6 @@ import System.Environment
 import Message.TextCreator
 import Ranking (findNewRank)
 
-
 type Size = Int
 type Name = Text
 type RankName = Text
@@ -74,20 +73,17 @@ handleAction action model@(Model size name rank) = case action of
         pure NoAction
     Grow -> (Model (size + 1) name rank) <# do
         replyText (growMessageText name (pack (show (size + 1))))
-
         case findNewRank (size + 1) of
             Nothing -> pure NoAction
             (Just newRank) -> pure (NewRankNotification newRank)
     ShowStatus -> model <# do
-        replyText (append (pack (show(size + 1) ++ " ")) name)
+        replyText (statusMessageText name (pack (show(size + 1))) rank)
         pure Rank
-
     NewRankNotification newRank -> (Model size name newRank) <# do
         replyText "New Rank!!!"
         pure NoAction
-
     Rank -> model <# do
-        replyText rank
+        replyText (rankMessageText name rank)
         pure NoAction
 
 -- | Run bot with a given 'Telegram.Token'.
