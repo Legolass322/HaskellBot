@@ -12,6 +12,7 @@ import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.API.GettingUpdates
 import System.Environment
 import Message.TextCreator
+import Rankings
 
 
 type Size = Int

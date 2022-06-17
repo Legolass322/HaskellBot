@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lib
       Message.TextCreator
+      Rankings
   other-modules:
       Paths_haskellbot
   hs-source-dirs:
