@@ -8,7 +8,7 @@ import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Debug
 import           Telegram.Bot.Simple.UpdateParser
 import System.Environment
-
+import Lib
 
 type Size = Int
 type Name = Text
@@ -60,5 +60,5 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    setEnv "TELEGRAM_BOT_TOKEN" "2026002626:AAE_oOm3jXXJ2lsZJ_0TvsSPpF13W_lqw6I"
+    setEnv "TELEGRAM_BOT_TOKEN" "1461268328:AAGjrpjGKLKmt_F3uwWe7YqaKBxlgQamUho"
     getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
