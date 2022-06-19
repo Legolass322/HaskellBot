@@ -21,3 +21,7 @@ lookup' _ [] =  Nothing
 lookup' key ((x, y) : xys)
   | key == x  =  Just y
   | otherwise =  lookup' key xys
+
+
+findNewRank :: Int -> Maybe Text
+findNewRank size = lookup' size ranking
