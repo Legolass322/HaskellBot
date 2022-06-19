@@ -13,14 +13,17 @@ import           Telegram.Bot.API.GettingUpdates
 import           Ranking
 import System.Environment
 
--- 
+-- | Code sources
 import Message.TextCreator
 import Ranking (findNewRank)
 
+-- | Type macros
+-- * Model types
 type Size = Int
 type Name = Text
 type RankName = Text
 
+-- | Dealing with several users
 updateToConversation :: Telegram.Update -> Maybe ChatId
 updateToConversation update = chatIdInt
     where
@@ -29,13 +32,13 @@ updateToConversation update = chatIdInt
             (Just message) -> Just $ chatId $ messageChat message
 
 
--- | Bot conversation state model.
+-- | Bot model: HaskellerState(size, name, rank)
 data Model = Model Size Name RankName
     deriving (Show)
 
 -- | Actions bot can perform.
 data Action
-  = NoAction    -- ^ Perform no action.
+  = NoAction
   | ShowStatus
   | Grow
   | ChangeName Text
@@ -44,8 +47,12 @@ data Action
   deriving (Show)
 
 
--- | Bot application.
-bot :: BotApp Model Action -- TODO: understand what is it?
+-- | Bot application bindings init
+-- @param botInitialModel [Model]
+-- @param botAction [(tgupdate->model->action)] action to text binding
+-- @param botHandler [(action->model->action.model)] action&model to program(action' model')
+-- @param botJobs ???
+bot :: BotApp Model Action
 bot = BotApp
   { botInitialModel = Model 0 "" "defaultRank"
   , botAction = flip handleUpdate
@@ -56,8 +63,7 @@ bot = BotApp
 sevBot = conversationBot updateToConversation bot
 
 
--- | How to process incoming 'Telegram.Update's
--- and turn them into 'Action's.
+-- | Text to Action
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
 handleUpdate _ = parseUpdate(
     ChangeName <$> command "change_name" <|>
@@ -65,7 +71,7 @@ handleUpdate _ = parseUpdate(
     Rank <$ command "rank" <|>
     ShowStatus <$ command "status")
 
--- | How to handle 'Action's.
+-- | Action&Model to programm of Action' Model'
 handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank) = case action of
     NoAction -> pure model
@@ -96,5 +102,5 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    setEnv "TELEGRAM_BOT_TOKEN" "5476065253:AAG3UGylTitAZMZjFiLY1DdX_fSTmVwh3k8"
+    setEnv "TELEGRAM_BOT_TOKEN" "PUT_TOKEN_HERE"
     getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
