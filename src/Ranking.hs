@@ -18,5 +18,6 @@ ranking =
 
 -- | function that returns rank if new rank is reached
 -- otherwise - returns Nothing
+
 findNewRank :: Int -> Maybe Text
-findNewRank size = lookup size ranking
+findNewRank size = lookup' size ranking

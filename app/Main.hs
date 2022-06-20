@@ -75,7 +75,7 @@ handleUpdate _ = parseUpdate(
     ShowStatus <$ command "status")
 
 -- | How to handle 'Action's.
-handleAction :: Action -> Model -> Eff Action Model
+handleAction :: Action -> Model -> Eff Action Modelb
 handleAction action model@(Model size name rank) = case action of
 
     NoAction -> pure model -- nothing to do
