@@ -10,7 +10,7 @@ import           Telegram.Bot.Simple.UpdateParser
 import           Telegram.Bot.API.Types 
 import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.API.GettingUpdates
-import System.Environment
+import Prelude
 
 -- | import project modules
 
@@ -75,7 +75,7 @@ handleUpdate _ = parseUpdate(
     ShowStatus <$ command "status")
 
 -- | How to handle 'Action's.
-handleAction :: Action -> Model -> Eff Action Modelb
+handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank) = case action of
 
     NoAction -> pure model -- nothing to do
@@ -115,5 +115,7 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    setEnv "TELEGRAM_BOT_TOKEN" "5476065253:AAG3UGylTitAZMZjFiLY1DdX_fSTmVwh3k8"
-    getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
+    putStrLn "Please enter telegram token:"
+    tgToken <- getLine
+
+    run (Telegram.Token (pack tgToken))

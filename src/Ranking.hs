@@ -20,4 +20,4 @@ ranking =
 -- otherwise - returns Nothing
 
 findNewRank :: Int -> Maybe Text
-findNewRank size = lookup' size ranking
+findNewRank size = lookup size ranking
