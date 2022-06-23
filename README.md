@@ -20,6 +20,8 @@ git clone https://github.com/Legolass322/HaskellBot
 #### Stack 
 ```sh
 stack build
-echo "<Your Telegram Bot API Key>" >> ./src/tg_bot_key.txt
 stack run
+Please enter telegram token:
+<Your Telegram Bot API Token>
 ```
+Enjoy!
