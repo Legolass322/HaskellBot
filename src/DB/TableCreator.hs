@@ -1,4 +1,5 @@
-module DB where
+{-# LANGUAGE OverloadedStrings #-}
+module DB.TableCreator where
 
 -- dep
 import Control.Applicative
@@ -7,14 +8,15 @@ import Database.SQLite.Simple.FromRow
 
 -- test data (compare with table)
 data Test = Test 
-    { id
-    , str
+    { idTest :: Int
+    , strTest :: String
     }
+
 instance Show Test where
     show test = mconcat 
-        [ show $ id test
+        [ show $ idTest test
         , ", "
-        , str test
+        , strTest test
         ]
 instance FromRow Test where
     fromRow = Test 
@@ -43,9 +45,20 @@ printTest = withConn "db.db" $
         rows <- query_ conn "SELECT * FROM test;" :: IO [Test]
         mapM_ print rows
 
+tryCreateDBWithTable :: IO()
+tryCreateDBWithTable = withConn "db.db" $
+    \conn -> do
+        execute_ conn "DROP TABLE IF EXISTS test;"
+        execute_ conn "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY,str TEXT);"
+        print "table created"
+
 -- exec in command line
 -- sqlite3 db.db < CreateTable.sql
 createTable = undefined
 
 test :: IO()
-test = putStrLn "Hello, world"
+test = do 
+    tryCreateDBWithTable
+    addTest "string1"
+    addTest "string2"
+    printTest
