@@ -8,7 +8,7 @@ import qualified Telegram.Bot.API          as Telegram
 import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Debug
 import           Telegram.Bot.Simple.UpdateParser
-import           Telegram.Bot.API.Types 
+import           Telegram.Bot.API.Types
 import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.API.GettingUpdates
 import           Control.Monad.IO.Class (liftIO)
@@ -40,10 +40,10 @@ cooldown = 10
 updateToConversation :: Telegram.Update -> Maybe ChatId
 updateToConversation update = chatIdInt
     where
-        chatIdInt = case (updateMessage update) of
+        chatIdInt = case updateMessage update of
             Nothing -> Nothing
             (Just message) -> Just $ chatId $ messageChat message
-                    
+
 
 -- | Bot conversation state model.
 data Model = Model Size Name RankName LastGrowth
@@ -64,7 +64,7 @@ data Action
 -- | Bot application.
 bot :: UTCTime -> BotApp Model Action
 bot time = BotApp
-  { botInitialModel = (Model 0 "" "Newbie" time)
+  { botInitialModel = Model 0 "" "Newbie" time
   , botAction = flip handleUpdate
   , botHandler = handleAction
   , botJobs = []
@@ -89,17 +89,17 @@ handleAction action model@(Model size name rank time) = case action of
 
     NoAction -> pure model -- nothing to do
 
-    ChangeName newName -> (Model size newName rank time) <# do -- change name
+    ChangeName newName -> Model size newName rank time <# do -- change name
         replyText (changeNameMessageText name newName)
         pure NoAction
 
-    GrowCommand -> 
+    GrowCommand ->
         model <# do
-            currentTime <- liftIO (getCurrentTime)
-            if not $ checkForGrowth time currentTime cooldown
+            currentTime <- liftIO getCurrentTime
+            if not $ checkForGrowth currentTime time cooldown
             then pure NotifyThatCannotGrow
             else pure Grow
-                
+
 
     ShowStatus -> model <# do -- shows all available information about haskeller
         replyText (statusMessageText name (pack (show (size + 1))) rank)
@@ -118,7 +118,7 @@ handleAction action model@(Model size name rank time) = case action of
         replyText "You cannot perform this action"
         pure NoAction
 
-    Grow -> (Model (size + 1) name rank time) <# do -- increases IQ by 1
+    Grow -> Model (size + 1) name rank time <# do -- increases IQ by 1
                 replyText (growMessageText name (pack (show (size + 1))))
 
                 -- If new rank is reached, notifies about it and change it
@@ -141,4 +141,4 @@ main = do
 
     currentTime <- getCurrentTime
 
-    run (Telegram.Token (pack tgToken)) currentTime 
+    run (Telegram.Token (pack tgToken)) currentTime

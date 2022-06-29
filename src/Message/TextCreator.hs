@@ -4,6 +4,11 @@ module Message.TextCreator where
 import Data.Text (Text)
 import qualified Data.Text as T
 
+-- >>> enterNewNameText
+-- Please enter new name:
+enterNewNameText :: Text
+enterNewNameText = "Please enter new name:"
+
 -- >>> changeNameMessageText "someOldName" "newCoolName"
 -- Now your someOldName is newCoolName!
 changeNameMessageText :: Text -> Text -> Text
