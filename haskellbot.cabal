@@ -27,6 +27,7 @@ library
   exposed-modules:
       Message.TextCreator
       Ranking
+      TimeApi
   other-modules:
       Paths_haskellbot
   hs-source-dirs:
