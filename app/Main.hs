@@ -13,7 +13,7 @@ import           Telegram.Bot.API.GettingUpdates
 import System.Environment
 import Lib
 import Message.TextCreator
-import Rankings
+import Ranking
 
 
 type Size = Int
@@ -90,9 +90,5 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-<<<<<<< HEAD
-    setEnv "TELEGRAM_BOT_TOKEN" "1461268328:AAGjrpjGKLKmt_F3uwWe7YqaKBxlgQamUho"
-=======
-    setEnv "TELEGRAM_BOT_TOKEN" "YOUR TELEGRAM BOT TOKEN"
->>>>>>> 1ef729edb15c474b2e85c04c871867c13ad7bbb9
+    setEnv "TELEGRAM_BOT_TOKEN" ""
     getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
