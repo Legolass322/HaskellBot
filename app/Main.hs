@@ -46,7 +46,7 @@ data Action
 -- | Bot application.
 bot :: BotApp Model Action -- TODO: understand what is it?
 bot = BotApp
-  { botInitialModel = Model 0 "" "defaultRank"
+  { botInitialModel = Model 0 "" "Newbie"
   , botAction = flip handleUpdate
   , botHandler = handleAction
   , botJobs = []
@@ -67,22 +67,29 @@ handleUpdate _ = parseUpdate(
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank) = case action of
-    NoAction -> pure model
-    ChangeName newName -> (Model size newName rank) <# do
+
+    NoAction -> pure model -- nothing to do
+
+    ChangeName newName -> Model size newName rank <# do -- change name
         replyText (changeNameMessageText name newName)
         pure NoAction
-    Grow -> (Model (size + 1) name rank) <# do
+
+    Grow -> Model (size + 1) name rank <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1))))
         case findNewRank (size + 1) of
             Nothing -> pure NoAction
             (Just newRank) -> pure (NewRankNotification newRank)
-    ShowStatus -> model <# do
-        replyText (statusMessageText name (pack (show(size + 1))) rank)
-        pure Rank
-    NewRankNotification newRank -> (Model size name newRank) <# do
-        replyText "New Rank!!!"
+
+    ShowStatus -> model <# do -- shows all available information about haskeller
+        replyText (statusMessageText name (pack (show (size + 1))) rank)
         pure NoAction
-    Rank -> model <# do
+
+    NewRankNotification newRank -> Model size name newRank <# do -- notifies user about new rank
+        -- + changes new rank
+        replyText (newRankMessageText name newRank)
+        pure NoAction
+
+    Rank -> model <# do -- shows rank of the haskeller
         replyText (rankMessageText name rank)
         pure NoAction
 
