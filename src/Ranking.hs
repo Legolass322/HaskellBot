@@ -3,6 +3,7 @@ module Ranking where
 
 import Data.Text
 
+-- | all ranks, now stored inside code, because they are immutable
 ranking = 
   [  (10, "Telegram Bot Freelancer")
   ,  (20, "Builder")
@@ -15,13 +16,8 @@ ranking =
   ,  (90, "Software Developer")  
   ,  (100, "Haskeller")  ]
 
-
-lookup' :: Int -> [(Int, Text)] -> Maybe Text
-lookup' _ [] =  Nothing
-lookup' key ((x, y) : xys)
-  | key == x  =  Just y
-  | otherwise =  lookup' key xys
-
+-- | function that returns rank if new rank is reached
+-- otherwise - returns Nothing
 
 findNewRank :: Int -> Maybe Text
-findNewRank size = lookup' size ranking
+findNewRank size = lookup size ranking
