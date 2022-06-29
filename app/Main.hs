@@ -10,16 +10,25 @@ import           Telegram.Bot.Simple.UpdateParser
 import           Telegram.Bot.API.Types 
 import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.API.GettingUpdates
-import System.Environment
-import Lib
+import Prelude
+
+-- | import project modules
+
+-- import text for messages
 import Message.TextCreator
-import Ranking
+
+-- import ranks for haskeller
+import Ranking (findNewRank)
 
 
+-- | type aliases to semantically show 
+-- where necessary info is stored  
 type Size = Int
 type Name = Text
 type RankName = Text
 
+-- | function that shows how to distinguish 'conversations'
+-- ('Conversations' are distinguished by chat id)
 updateToConversation :: Telegram.Update -> Maybe ChatId
 updateToConversation update = chatIdInt
     where
@@ -34,23 +43,25 @@ data Model = Model Size Name RankName
 
 -- | Actions bot can perform.
 data Action
-  = NoAction    -- ^ Perform no action.
-  | ShowStatus
-  | Grow
-  | Name Text
-  | Rank
+  = NoAction                        -- ^ Perform no action.
+  | ShowStatus                      -- ^ Action to show all info available about the haskeller
+  | Grow                            -- ^ Action to increase IQ of haskeller
+  | ChangeName Text                 -- ^ Action to changing name of the haskeller
+  | Rank                            -- ^ Action to show rank of the haskeller
+  | NewRankNotification RankName    -- ^ Action to show notification about new Rank
   deriving (Show)
 
 
 -- | Bot application.
 bot :: BotApp Model Action
 bot = BotApp
-  { botInitialModel = (Model 0 "" "defaultRank")
+  { botInitialModel = (Model 0 "" "Newbie")
   , botAction = flip handleUpdate
   , botHandler = handleAction
   , botJobs = []
   }
 
+-- | bot for several 'conversations'
 sevBot = conversationBot updateToConversation bot
 
 
@@ -58,7 +69,7 @@ sevBot = conversationBot updateToConversation bot
 -- and turn them into 'Action's.
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
 handleUpdate _ = parseUpdate(
-    Name <$> command "name" <|>
+    ChangeName <$> command "change_name" <|>
     Grow <$ command "grow" <|>
     Rank <$ command "rank" <|>
     ShowStatus <$ command "status")
@@ -66,17 +77,31 @@ handleUpdate _ = parseUpdate(
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank) = case action of
-    NoAction -> pure model
-    Name newName -> (Model size newName rank) <# do
+
+    NoAction -> pure model -- nothing to do
+
+    ChangeName newName -> (Model size newName rank) <# do -- change name
         replyText (changeNameMessageText name newName)
-        pure ShowStatus
-    Grow -> (Model (size + 1) name rank) <# do
+        pure NoAction
+
+    Grow -> (Model (size + 1) name rank) <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1))))
-        pure ShowStatus
-    ShowStatus -> model <# do
+
+        -- If new rank is reached, notifies about it and change it
+        case findNewRank (size + 1) of
+            Nothing -> pure NoAction
+            (Just newRank) -> pure (NewRankNotification newRank)
+
+    ShowStatus -> model <# do -- shows all available information about haskeller
         replyText (append (pack (show(size + 1) ++ " ")) name)
-        pure Rank
-    Rank -> model <# do
+        pure Rank -- to show rank
+
+    NewRankNotification newRank -> (Model size name newRank) <# do -- notifies user about new rank
+        -- + changes new rank
+        replyText "New Rank!!!"
+        pure NoAction
+
+    Rank -> model <# do -- shows rank of the haskeller
         replyText rank
         pure NoAction
 
@@ -90,5 +115,7 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    setEnv "TELEGRAM_BOT_TOKEN" ""
-    getEnvToken "TELEGRAM_BOT_TOKEN" >>= run
+    putStrLn "Please enter telegram token:"
+    tgToken <- getLine
+
+    run (Telegram.Token (pack tgToken))
