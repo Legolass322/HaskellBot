@@ -109,7 +109,7 @@ handleAction action model@(Model size name rank time) = case action of
     --         else pure Grow
 
     ShowStatus -> model <# do -- shows all available information about haskeller
-        replyText (statusMessageText name (pack (show (size + 1))) rank)
+        replyText (statusMessageText name (pack (show size)) rank)
         pure NoAction
 
     NewRankNotification newRank -> model <# do -- notifies user about new rank
