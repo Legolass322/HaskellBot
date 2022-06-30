@@ -117,14 +117,14 @@ handleAction action model@(Model size name rank time flag) = case action of
         replyText (statusMessageText name (pack (show size)) rank)
         pure NoAction
 
-    NewRankNotification newRank -> model <# do -- notifies user about new rank and changes new rank
+    NewRankNotification newRank -> Model size name newRank time flag <# do -- notifies user about new rank and changes new rank
         replyText (newRankMessageText name newRank)
         pure NoAction
 
     Rank -> model <# do -- shows rank of the haskeller
         replyText (rankMessageText name rank)
         pure NoAction
-        
+
     Grow -> Model (size + 1) name rank time flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
         case findNewRank (size + 1) of
