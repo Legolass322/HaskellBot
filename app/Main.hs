@@ -45,19 +45,18 @@ updateToConversation update = chatIdInt
 
 
 -- | Bot conversation state model.
-data Model = Model Size Name RankName LastGrowth
+data Model = Model Size Name RankName LastGrowth 
     deriving (Show)
 
 -- | Actions bot can perform.
 data Action
   = NoAction                        -- ^ Perform no action.
   | ShowStatus                      -- ^ Action to show all info available about the haskeller  
-  | Grow
-  | Start
+  | Grow                            -- ^ Action to grow haskeller by 1 IQ
+  | Start                           -- ^ Action to start & open keyboard
   | ChangeName Text                 -- ^ Action to changing name of the haskeller
   | Rank                            -- ^ Action to show rank of the haskeller
   | NewRankNotification RankName    -- ^ Action to show notification about new Rank
-  | KeyboardCommands Text
   deriving (Show)
 
 -- | Bot application.
@@ -72,7 +71,6 @@ bot time = BotApp
 -- | bot for several 'conversations'
 sevBot time = conversationBot updateToConversation (bot time)
 
-
 -- | How to process incoming 'Telegram.Update's
 -- and turn them into 'Action's.
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
@@ -81,8 +79,7 @@ handleUpdate _ = parseUpdate $
     Grow <$ command "grow" <|>
     Rank <$ command "rank" <|>
     ShowStatus <$ command "status" <|>
-    Start <$ command "start" <|>
-    KeyboardCommands <$> text 
+    Start <$ command "start" 
 
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
@@ -90,23 +87,16 @@ handleAction action model@(Model size name rank time) = case action of
 
     NoAction -> pure model -- nothing to do
 
-    KeyboardCommands text -> model <# do
-        case text of 
-            "Grow" -> pure Grow
-            -- "Change Name" -> pure ChangeName
-            "Status" -> pure ShowStatus
-            "Rank" -> pure Rank
+    Start -> model <# do -- to start
+                reply (toReplyMessage startMessageText)
+                    { replyMessageReplyMarkup = Just $
+                        Telegram.SomeReplyKeyboardMarkup startMessageKeyboard
+                    }
+                pure NoAction
 
     ChangeName newName -> Model size newName rank time <# do -- change name
         replyText (changeNameMessageText name newName)
         pure NoAction
-
-    -- GrowCommand ->
-    --     model <# do
-    --         currentTime <- liftIO getCurrentTime
-    --         if not $ checkForGrowth currentTime time cooldown
-    --         then pure NotifyThatCannotGrow
-    --         else pure Grow
 
     ShowStatus -> model <# do -- shows all available information about haskeller
         replyText (statusMessageText name (pack (show size)) rank)
@@ -121,10 +111,6 @@ handleAction action model@(Model size name rank time) = case action of
         replyText (rankMessageText name rank)
         pure NoAction
 
-    -- NotifyThatCannotGrow -> model <# do
-    --     replyText "You cannot perform this action"
-    --     pure NoAction
-
     Grow -> Model (size + 1) name rank time <# do -- increases IQ by 1
                 replyText (growMessageText name (pack (show (size + 1))))
 
@@ -133,17 +119,10 @@ handleAction action model@(Model size name rank time) = case action of
                     Nothing -> pure NoAction
                     (Just newRank) -> pure (NewRankNotification newRank)
 
-    Start -> model <# do
-                reply (toReplyMessage startMessageText)
-                    { replyMessageReplyMarkup = Just $
-                        Telegram.SomeReplyKeyboardMarkup startMessageKeyboard
-                    }
-                pure NoAction
-
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
 startMessageKeyboard = Telegram.ReplyKeyboardMarkup
     { Telegram.replyKeyboardMarkupKeyboard =
-        [ [ "Grow", "Change Name" ] , [ "Status", "Rank" ] ]
+        [ [ "/grow", "/change_name" ] , [ "/status", "/rank" ] ]
     , Telegram.replyKeyboardMarkupResizeKeyboard = Just True
     , Telegram.replyKeyboardMarkupOneTimeKeyboard = Just True
     , Telegram.replyKeyboardMarkupSelective = Nothing
