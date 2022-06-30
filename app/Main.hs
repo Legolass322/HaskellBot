@@ -21,7 +21,6 @@ import Message.TextCreator
 
 -- import ranks for haskeller
 import Ranking (findNewRank)
-
 import TimeApi
 
 
@@ -52,13 +51,13 @@ data Model = Model Size Name RankName LastGrowth
 -- | Actions bot can perform.
 data Action
   = NoAction                        -- ^ Perform no action.
-  | ShowStatus                      -- ^ Action to show all info available about the haskeller
-  | GrowCommand                            -- ^ Action to increase IQ of haskeller
-  | NotifyThatCannotGrow
+  | ShowStatus                      -- ^ Action to show all info available about the haskeller  
   | Grow
+  | Start
   | ChangeName Text                 -- ^ Action to changing name of the haskeller
   | Rank                            -- ^ Action to show rank of the haskeller
   | NewRankNotification RankName    -- ^ Action to show notification about new Rank
+  | KeyboardCommands Text
   deriving (Show)
 
 -- | Bot application.
@@ -79,9 +78,11 @@ sevBot time = conversationBot updateToConversation (bot time)
 handleUpdate :: Model -> Telegram.Update -> Maybe Action
 handleUpdate _ = parseUpdate $
     ChangeName <$> command "change_name" <|>
-    GrowCommand <$ command "grow" <|>
+    Grow <$ command "grow" <|>
     Rank <$ command "rank" <|>
-    ShowStatus <$ command "status"
+    ShowStatus <$ command "status" <|>
+    Start <$ command "start" <|>
+    KeyboardCommands <$> text 
 
 -- | How to handle 'Action's.
 handleAction :: Action -> Model -> Eff Action Model
@@ -89,17 +90,23 @@ handleAction action model@(Model size name rank time) = case action of
 
     NoAction -> pure model -- nothing to do
 
+    KeyboardCommands text -> model <# do
+        case text of 
+            "Grow" -> pure Grow
+            -- "Change Name" -> pure ChangeName
+            "Status" -> pure ShowStatus
+            "Rank" -> pure Rank
+
     ChangeName newName -> Model size newName rank time <# do -- change name
         replyText (changeNameMessageText name newName)
         pure NoAction
 
-    GrowCommand ->
-        model <# do
-            currentTime <- liftIO getCurrentTime
-            if not $ checkForGrowth currentTime time cooldown
-            then pure NotifyThatCannotGrow
-            else pure Grow
-
+    -- GrowCommand ->
+    --     model <# do
+    --         currentTime <- liftIO getCurrentTime
+    --         if not $ checkForGrowth currentTime time cooldown
+    --         then pure NotifyThatCannotGrow
+    --         else pure Grow
 
     ShowStatus -> model <# do -- shows all available information about haskeller
         replyText (statusMessageText name (pack (show (size + 1))) rank)
@@ -114,9 +121,9 @@ handleAction action model@(Model size name rank time) = case action of
         replyText (rankMessageText name rank)
         pure NoAction
 
-    NotifyThatCannotGrow -> model <# do
-        replyText "You cannot perform this action"
-        pure NoAction
+    -- NotifyThatCannotGrow -> model <# do
+    --     replyText "You cannot perform this action"
+    --     pure NoAction
 
     Grow -> Model (size + 1) name rank time <# do -- increases IQ by 1
                 replyText (growMessageText name (pack (show (size + 1))))
@@ -126,6 +133,22 @@ handleAction action model@(Model size name rank time) = case action of
                     Nothing -> pure NoAction
                     (Just newRank) -> pure (NewRankNotification newRank)
 
+    Start -> model <# do
+                reply (toReplyMessage startMessageText)
+                    { replyMessageReplyMarkup = Just $
+                        Telegram.SomeReplyKeyboardMarkup startMessageKeyboard
+                    }
+                pure NoAction
+
+startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
+startMessageKeyboard = Telegram.ReplyKeyboardMarkup
+    { Telegram.replyKeyboardMarkupKeyboard =
+        [ [ "Grow", "Change Name" ] , [ "Status", "Rank" ] ]
+    , Telegram.replyKeyboardMarkupResizeKeyboard = Just True
+    , Telegram.replyKeyboardMarkupOneTimeKeyboard = Just True
+    , Telegram.replyKeyboardMarkupSelective = Nothing
+    , Telegram.replyKeyboardMarkupInputFieldSelector = Nothing
+    }
 
 -- | Run bot with a given 'Telegram.Token'.
 run :: Telegram.Token -> UTCTime -> IO ()
