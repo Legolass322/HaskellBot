@@ -6,6 +6,8 @@ import Control.Applicative
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
 
+
+import DB.Utils
 -- test data (compare with table)
 data Test = Test 
     { idTest :: Int
@@ -48,7 +50,7 @@ printTest = withConn "db.db" $
 tryCreateDBWithTable :: IO()
 tryCreateDBWithTable = withConn "db.db" $
     \conn -> do
-        execute_ conn "DROP TABLE IF EXISTS test;"
+        execute_ conn "DROP TABLE IF EXISTS test"
         execute_ conn "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY,str TEXT);"
         print "table created"
 
@@ -56,9 +58,6 @@ tryCreateDBWithTable = withConn "db.db" $
 -- sqlite3 db.db < CreateTable.sql
 createTable = undefined
 
-test :: IO()
-test = do 
-    tryCreateDBWithTable
-    addTest "string1"
-    addTest "string2"
-    printTest
+-- test :: IO()
+-- test = do 
+    

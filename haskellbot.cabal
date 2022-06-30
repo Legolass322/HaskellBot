@@ -25,7 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      DB.Connection
+      DB.Models
       DB.TableCreator
+      DB.Utils
       Message.TextCreator
       Ranking
   other-modules:

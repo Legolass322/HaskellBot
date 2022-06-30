@@ -21,7 +21,7 @@ import Message.TextCreator
 import Ranking (findNewRank)
 
 -- import database stuff
-import qualified DB.TableCreator as TableCreator
+import qualified DB.Utils as DB
 
 -- | type aliases to semantically show 
 -- where necessary info is stored  
@@ -116,7 +116,15 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
-    TableCreator.test
+    DB.dropHTable
+    DB.createHTable
+    DB.addHaskeller 1 "name" 0 "rank" "time123"
+    DB.printAll
+    DB.updateName 1 "newName"
+    DB.updateIQ 1 10
+    DB.updateRank 1 "newRank"
+    DB.printAll
+
     putStrLn "Please enter telegram token:"
     tgToken <- getLine
 
