@@ -1,6 +1,7 @@
 module TimeApi where
 
-import Data.Time 
+import Data.Time
+import Data.Fixed (Pico) 
 
 checkForGrowth :: UTCTime -> UTCTime -> Int -> Bool
 checkForGrowth time1 time2 cooldownInSec = isReadyToGrow
@@ -11,8 +12,9 @@ checkForGrowth time1 time2 cooldownInSec = isReadyToGrow
         -- firstCond = deltaTime >= secInDay && (utctDayTime time2 + secInDay > deltaTime) && (utctDay time2 > utctDay time1)
         -- secondCond = deltaTime < secInDay && ((utctDayTime time2 > deltaTime && utctDay time2 >= utctDay time1) || (utctDayTime time2 < deltaTime && utctDay time2 > utctDay time1))
 
-        deltaTime = toRational $ diffUTCTime time1 time2
+        deltaTime = abs(diffUTCTime time1 time2)
 
-        cooldownInRational = toRational cooldownInSec
+        cooldownInPico :: NominalDiffTime
+        cooldownInPico = fromInteger (toInteger cooldownInSec)
 
-        isReadyToGrow = deltaTime >= cooldownInRational
+        isReadyToGrow = deltaTime >= cooldownInPico
