@@ -56,21 +56,20 @@ data Model = Model Size Name RankName LastGrowth Flag
 
 -- | Actions bot can perform.
 data Action
-  = NoAction                        -- ^ Perform no action.
-  | ShowStatus                      -- ^ Action to show all info available about the haskeller
+  = NoAction                               -- ^ Perform no action.
+  | ShowInfo                               -- ^ Action to show all info available about the haskeller
   | GrowCommand                            -- ^ Action to increase IQ of haskeller
-  | NotifyThatCannotGrow NominalDiffTime
-  | Grow UTCTime
-  | ChangeName                 -- ^ Action to changing name of the haskeller
-  | Rank                            -- ^ Action to show rank of the haskeller
-  | NewRankNotification RankName    -- ^ Action to show notification about new Rank
-  | Start -- | Display start message
-  | InputName Text
+  | NotifyThatCannotGrow NominalDiffTime   -- ^ ?
+  | Grow UTCTime                           -- ^ ?
+  | ChangeName                             -- ^ Action to change the flag and pure InputName
+  | NewRankNotification RankName           -- ^ Action to show notification about new Rank
+  | Start                                  -- ^ Display start message
+  | InputName Text                         -- ^ Action to change name of haskeller 
   deriving (Show)
 
 -- | Bot application.
 bot :: UTCTime -> BotApp Model Action
-bot time = BotApp { botInitialModel = Model 0 "" "Newbie" time False
+bot time = BotApp { botInitialModel = Model 0 "Haskeller" "Newbie" time False
                   , botAction       = flip handleUpdate
                   , botHandler      = handleAction
                   , botJobs         = []
@@ -87,8 +86,7 @@ handleUpdate _ =
     parseUpdate
         $   ChangeName <$  command "change_name"
         <|> GrowCommand <$  command "grow"
-        <|> Rank <$  command "rank"
-        <|> ShowStatus <$  command "status"
+        <|> ShowInfo <$  command "info"
         <|> Start <$  command "start"
         <|> InputName <$> text
 
@@ -97,58 +95,54 @@ handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank time flag) = case action of
     NoAction -> pure model -- nothing to do
 
-    Start    -> model <# do
-                -- to start
+    Start    -> model <# do -- to start
         reply (toReplyMessage startMessageText)
             { replyMessageReplyMarkup = Just
                 $ Telegram.SomeReplyKeyboardMarkup startMessageKeyboard
             }
         pure NoAction
-    ChangeName -> Model size name rank time True <# do -- change name
+
+    ChangeName -> Model size name rank time True <# do -- change the flag & pure InputName 
         replyText enterNewNameText
         pure NoAction
-    GrowCommand -> 
+
+    GrowCommand ->  -- ?
         model <# do
-            currentTime <- liftIO (getCurrentTime) 
+            currentTime <- liftIO getCurrentTime
             if checkForGrowth time currentTime cooldown
             then
                 pure (Grow currentTime) 
             else 
                 pure (NotifyThatCannotGrow (abs(diffUTCTime time currentTime)))
 
-    InputName newName -> if flag
+    InputName newName -> if flag -- change name if flag, else pure NoAction
         then Model size newName rank time flag <# do
             replyText (changeNameMessageText name newName)
             pure NoAction
         else model <# pure NoAction
 
-    ShowStatus -> model <# do -- shows all available information about haskeller
+    ShowInfo -> model <# do -- shows all available information about haskeller
         replyText (statusMessageText name (pack (show size)) rank)
         pure NoAction
 
     NewRankNotification newRank -> Model size name newRank time flag <# do -- notifies user about new rank and changes new rank
         replyText (newRankMessageText name newRank)
         pure NoAction
-
-    Rank -> model <# do -- shows rank of the haskeller
-        replyText (rankMessageText name rank)
-        pure NoAction
     
-    Grow newTime -> (Model (size + 1) name rank newTime flag) <# do -- increases IQ by 1
+    Grow newTime -> Model (size + 1) name rank newTime flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
         case findNewRank (size + 1) of
             Nothing        -> pure NoAction
             (Just newRank) -> pure (NewRankNotification newRank)
 
-    NotifyThatCannotGrow deltaTime -> model <# do
-        replyText "You cannot grow"
+    NotifyThatCannotGrow deltaTime -> model <# do -- ?
+        replyText (cannotGrowMessageText name)
         pure NoAction
 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
 startMessageKeyboard = Telegram.ReplyKeyboardMarkup
-    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/change_name"]
-                                             , ["/status", "/rank"]
+    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/info" ,"/change_name"]
                                              ]
     , Telegram.replyKeyboardMarkupResizeKeyboard     = Just True
     , Telegram.replyKeyboardMarkupOneTimeKeyboard    = Just False

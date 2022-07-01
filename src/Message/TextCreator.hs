@@ -12,26 +12,25 @@ enterNewNameText = "Please enter new name:"
 -- >>> changeNameMessageText "someOldName" "newCoolName"
 -- Now your someOldName is newCoolName!
 changeNameMessageText :: Text -> Text -> Text
-changeNameMessageText oldName newName = mconcat ["\x26A1 Now your \x1F9B9 ", oldName, " is ", newName, "!"]
+changeNameMessageText oldName newName = mconcat ["\x26A1 Now your ", oldName, " is ", newName, "!"]
 
 -- >>> growMessageText "Ivan" "3"
 -- Excellent! Now your Ivan is smarter!
 -- 
 -- Your haskeller has 3 IQ!
 growMessageText :: Text -> Text -> Text
-growMessageText name size = mconcat ["\x2728 Excellent! Now your \x1F9B9 ", name, " is smarter \x1F60E ! \n \nYour haskeller has ", size, " IQ!"]
+growMessageText name size = mconcat ["\x2728 Excellent! Now your ", name, " is smarter! \n \n", name, " has ", size, " IQ!"]
+
+-- >>> cannotGrowMessageText
+-- Please wait, your Haskeler still growing
+cannotGrowMessageText :: Text -> Text
+cannotGrowMessageText name = mconcat ["\x1F558 Please wait, your ", name," still growing"]
 
 -- >>> newRankMessageText "Ivan" "Haskell Bot Developer"
 -- New Rank!
 -- Your Ivan has Haskell Bot Developer rank
 newRankMessageText :: Text -> Text -> Text
-newRankMessageText name rank =  T.unlines ["\x1F389 New Rank!", rankText]
-  where rankText = rankMessageText name rank
-
--- >>> rankMessageText "Ivan" "Haskell Bot Developer"
--- Your Ivan has Haskell Bot Developer rank
-rankMessageText :: Text -> Text -> Text
-rankMessageText name rank = mconcat ["\x1F525 Your ", name, " has ", rank, " rank"]
+newRankMessageText name rank =  T.unlines ["\x1F389 New Rank!", mconcat ["\x1F525 Your ", name, " has ", rank, " rank"]]
 
 -- >>> statusMessageText "Ivan" "3" "Haskell Bot Developer"
 -- Your Ivan has 3 IQ (rank: Haskell Bot Developer)
@@ -45,9 +44,12 @@ statusMessageText name size rank = mconcat ["\x26A0 Your ", name, " has ", size,
 -- 
 -- - Use /change_name to change the name of your Haskeller
 -- - Use /grow to grow by 1 IQ of your Haskeller and see the current IQ
--- - Use /rank to see the current rank (each 10 IQ, the rank changes to the new one)
--- - Use /status to see all the characteristics of your Haskeller (name, IQ, rank)
+-- - Use /info to see all the characteristics of your Haskeller (name, IQ, rank*)
 --
+-- *Each 10 IQ the rank changes to the new one
+--
+-- The process of growing your haskelist takes some time
+-- Wait 10 seconds after /grow command to grow again!
 --
 -- Enjoy!
 
@@ -59,9 +61,12 @@ startMessageText = T.unlines
  , ""
  , "- Use /change_name to change the name of your Haskeller"
  , "- Use /grow to grow by 1 IQ of your Haskeller and see the current IQ"
- , "- Use /rank to see the current rank (each 10 IQ, the rank changes to the new one)"
- , "- Use /status to see all the characteristics of your Haskeller (name, IQ, rank)"
+ , "- Use /info to see all the characteristics of your Haskeller (name, IQ, rank*)"
  , ""
+ , "*The rank changes to the new one each 10 IQ"
+ , ""
+ , "\x1F558 The process of growing your haskelist takes some time"
+ , "Wait 10 seconds after /grow command to grow again!"
  , ""
  , "Enjoy!"
  ]
