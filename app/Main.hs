@@ -55,7 +55,7 @@ data Action
   | ShowStatus                      -- ^ Action to show all info available about the haskeller
   | GrowCommand                            -- ^ Action to increase IQ of haskeller
   | NotifyThatCannotGrow
-  | Grow
+  | Grow UTCTime
   | ChangeName Text                 -- ^ Action to changing name of the haskeller
   | Rank                            -- ^ Action to show rank of the haskeller
   | NewRankNotification RankName    -- ^ Action to show notification about new Rank
@@ -95,10 +95,12 @@ handleAction action model@(Model size name rank time) = case action of
 
     GrowCommand -> 
         model <# do
-            currentTime <- liftIO (getCurrentTime)
-            if not $ checkForGrowth time currentTime cooldown
-            then pure NotifyThatCannotGrow
-            else pure Grow
+            currentTime <- liftIO (getCurrentTime) 
+            if checkForGrowth time currentTime cooldown
+            then
+                pure (Grow currentTime) 
+            else  
+                pure NotifyThatCannotGrow
                 
 
     ShowStatus -> model <# do -- shows all available information about haskeller
@@ -118,7 +120,7 @@ handleAction action model@(Model size name rank time) = case action of
         replyText "You cannot perform this action"
         pure NoAction
 
-    Grow -> (Model (size + 1) name rank time) <# do -- increases IQ by 1
+    Grow newTime -> (Model (size + 1) name rank newTime) <# do -- increases IQ by 1
                 replyText (growMessageText name (pack (show (size + 1))))
 
                 -- If new rank is reached, notifies about it and change it
