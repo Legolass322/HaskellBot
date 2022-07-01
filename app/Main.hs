@@ -33,6 +33,9 @@ type Name = Text
 
 type RankName = Text
 
+-- import database stuff
+import qualified DB.Utils as DB
+
 type LastGrowth = UTCTime
 
 type Flag = Bool
@@ -92,7 +95,7 @@ handleUpdate _ =
         <|> Start <$  command "start"
         <|> InputName <$> text
 
--- | How to handle 'Action's.
+-- | Action&Model to programm of Action' Model'
 handleAction :: Action -> Model -> Eff Action Model
 handleAction action model@(Model size name rank time flag) = case action of
     NoAction -> pure model -- nothing to do
@@ -165,6 +168,20 @@ run token time = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
+    {-
+    example for db
+    now <- getCurrentTime
+    DB.dropHTable
+    DB.createHTable
+    DB.addHaskeller 1 "name" 0 "rank" now
+    DB.printAll
+    DB.updateName 1 "newName"
+    DB.updateIQ 1 10
+    DB.updateRank 1 "newRank"
+    DB.printAll
+    DB.getByChatId 1 (print . (++"GET") . show)
+    -}
+    
     putStrLn "Please enter telegram token:"
     tgToken     <- getLine
     currentTime <- getCurrentTime

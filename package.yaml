@@ -30,6 +30,7 @@ dependencies:
 - telegram-bot-simple
 - text
 - time
+- sqlite-simple
 
 library:
   source-dirs: src

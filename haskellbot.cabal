@@ -25,6 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      DB.Connection
+      DB.Models
+      DB.TableCreator
+      DB.Utils
       Message.TextCreator
       Ranking
       TimeApi
@@ -40,6 +44,7 @@ library
     , http-client-tls
     , mtl
     , servant-client
+    , sqlite-simple
     , telegram-bot-simple
     , text
     , time
@@ -61,6 +66,7 @@ executable haskellbot-exe
     , http-client-tls
     , mtl
     , servant-client
+    , sqlite-simple
     , telegram-bot-simple
     , text
     , time
@@ -83,6 +89,7 @@ test-suite haskellbot-test
     , http-client-tls
     , mtl
     , servant-client
+    , sqlite-simple
     , telegram-bot-simple
     , text
     , time
