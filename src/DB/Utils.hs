@@ -4,7 +4,7 @@ module DB.Utils where
 import Control.Applicative
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
-import Data.Text (Text, pack)
+import Data.Time
 
 import DB.Connection (withDBConn)
 import DB.Models (Haskeller)
@@ -22,27 +22,7 @@ createHTable = withDBConn $
         execute_ conn $
             "CREATE TABLE IF NOT EXISTS haskellers (chatId INTEGER PRIMARY KEY, name TEXT, iq INTEGER, rank TEXT, time TEXT)"
         print "Table haskellers created"
-
--- updateFieldByChatId :: (Show a, Show b) => String -> a -> b -> IO ()
--- updateFieldByChatId fieldName field chatId = withDBConn $
---     \conn -> do
---         execute conn updateQuery (show field, chatId)
---         print $ concat 
---             [ "Field ", fieldName
---             , " in ", (show chatId)
---             , " updated to " , (show field)]
---     where
---         updateQuery = case fieldName of
---             "name" -> 
---                 "UPDATE haskellers SET name = ? WHERE chatId = ?" 
---             "iq" ->
---                 "UPDATE haskellers SET iq = ? WHERE chatId = ?" 
---             "rank" ->
---                 "UPDATE haskellers SET rank = ? WHERE chatId = ?" 
---             "time" ->
---                 "UPDATE haskellers SET time = ? WHERE chatId = ?" 
-        
-
+   
 
 updateName  :: Int      -- chatId
             -> String   -- Name
@@ -74,28 +54,38 @@ updateRank chatId rank = withDBConn $
 
 
 updateTime  :: Int      -- chatId
-            -> String   -- time
+            -> UTCTime  -- time
             -> IO ()
 updateTime chatId time = withDBConn $
     \conn -> do
         execute conn 
             "UPDATE haskellers SET time = ? WHERE chatId = ?"
-            (time, chatId)
+            (show time, chatId)
 
 addHaskeller    :: Int      -- chatID
                 -> String   -- name
                 -> Int      -- iq
                 -> String   -- rank
-                -> String   -- time
+                -> UTCTime  -- time
                 -> IO ()
 addHaskeller chatId name iq rank time = withDBConn $
     \conn -> do
         execute conn 
             "INSERT INTO haskellers (chatId, name, iq, rank, time) VALUES (?, ?, ?, ?, ?)" 
-            (chatId, name, iq, rank, time)
+            (chatId, name, iq, rank, show time)
         print "Haskeller pushed"
 
 printAll = withDBConn $
     \conn -> do
         rows <- query_ conn "SELECT * FROM haskellers" :: IO [Haskeller]
         mapM_ print rows
+
+getByChatId :: Int -> (Haskeller -> IO ()) -> IO ()
+getByChatId chatId action = withDBConn $
+    \conn -> do
+        haskeller <- query conn 
+            "SELECT * FROM haskellers WHERE chatId = ? LIMIT 1"
+            (Only chatId)
+        mapM_ action haskeller
+        
+        

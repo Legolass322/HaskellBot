@@ -2,6 +2,7 @@
 module Main where
 
 import Data.Text (Text, pack, append)
+import Data.Time
 import           Control.Applicative              ((<|>))
 import qualified Telegram.Bot.API          as Telegram
 import           Telegram.Bot.Simple
@@ -116,14 +117,16 @@ run token = do
 -- | Run bot using 'Telegram.Token' from @TELEGRAM_BOT_TOKEN@ environment.
 main :: IO ()
 main = do
+    now <- getCurrentTime
     DB.dropHTable
     DB.createHTable
-    DB.addHaskeller 1 "name" 0 "rank" "time123"
+    DB.addHaskeller 1 "name" 0 "rank" now
     DB.printAll
     DB.updateName 1 "newName"
     DB.updateIQ 1 10
     DB.updateRank 1 "newRank"
     DB.printAll
+    DB.getByChatId 1 (print . (++"GET") . show)
 
     putStrLn "Please enter telegram token:"
     tgToken <- getLine
