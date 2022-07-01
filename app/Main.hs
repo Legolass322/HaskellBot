@@ -59,9 +59,9 @@ data Action
   = NoAction                        -- ^ Perform no action.
   | ShowStatus                      -- ^ Action to show all info available about the haskeller
   | GrowCommand                            -- ^ Action to increase IQ of haskeller
-  | NotifyThatCannotGrow
+  | NotifyThatCannotGrow NominalDiffTime
   | Grow UTCTime
-  | ChangeName Text                 -- ^ Action to changing name of the haskeller
+  | ChangeName                 -- ^ Action to changing name of the haskeller
   | Rank                            -- ^ Action to show rank of the haskeller
   | NewRankNotification RankName    -- ^ Action to show notification about new Rank
   | Start -- | Display start message
@@ -86,7 +86,7 @@ handleUpdate :: Model -> Telegram.Update -> Maybe Action
 handleUpdate _ =
     parseUpdate
         $   ChangeName <$  command "change_name"
-        <|> Grow <$  command "grow"
+        <|> GrowCommand <$  command "grow"
         <|> Rank <$  command "rank"
         <|> ShowStatus <$  command "status"
         <|> Start <$  command "start"
@@ -113,8 +113,8 @@ handleAction action model@(Model size name rank time flag) = case action of
             if checkForGrowth time currentTime cooldown
             then
                 pure (Grow currentTime) 
-            else  
-                pure NotifyThatCannotGrow
+            else 
+                pure (NotifyThatCannotGrow (abs(diffUTCTime time currentTime)))
 
     InputName newName -> if flag
         then Model size newName rank time flag <# do
@@ -139,6 +139,10 @@ handleAction action model@(Model size name rank time flag) = case action of
         case findNewRank (size + 1) of
             Nothing        -> pure NoAction
             (Just newRank) -> pure (NewRankNotification newRank)
+
+    NotifyThatCannotGrow deltaTime -> model <# do
+        replyText "You cannot grow"
+        pure NoAction
 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
