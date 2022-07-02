@@ -1,6 +1,6 @@
 # HaskellBot
 Grow your own Haskeller!
-Telegram chat-bot for fun. The idea is to grow your own ”haskeller” with the following chat commands: /change_name, /grow, /status, /rank
+Telegram chat-bot for fun. The idea is to grow your own ”haskeller” with the following chat commands: /change_name, /grow, /status
 - `/change_name` - to change the name of your haskeller
 - `/grow` - to grow by 1 IQ of your “haskeller” and see the current IQ
 - `/rank` - to see the current rank (each 10 IQ, the rank changes to the new one).
