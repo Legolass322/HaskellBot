@@ -73,10 +73,16 @@ addHaskeller    :: Int      -- chatID
                 -> IO ()
 addHaskeller chatId name iq rank time = withDBConn $
     \conn -> do
-        execute conn 
+        rows <- query conn 
+            "SELECT * FROM haskeller WHERE chatId = ?"
+            (Only chatId)
+        executeIfEmpty rows
+        print "Haskeller pushed"
+    where
+        executeIfEmpty [] = execute conn 
             "INSERT INTO haskellers (chatId, name, iq, rank, time) VALUES (?, ?, ?, ?, ?)" 
             (chatId, name, iq, rank, show time)
-        print "Haskeller pushed"
+        executeIfEmpty _ = return ""
 
 -- SELECT * FROM haskellers
 printAll = withDBConn $
@@ -108,6 +114,6 @@ getTop  :: Int              -- amount
 getTop amount = withDBConn $
     \conn -> do
         rows <- query conn
-            "SELECT * FROM haskellers ORDER BY iq LIMIT ?"
+            "SELECT * FROM haskellers ORDER BY iq DESC LIMIT ?"
             (Only amount)
         return rows
