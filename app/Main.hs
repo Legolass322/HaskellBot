@@ -133,7 +133,7 @@ handleAction action model@(Model size name rank time flag) = case action of
 
         case chatIdForAction of
             Nothing -> liftIO $ return ()
-            (Just (ChatId chatIdNumber)) -> liftIO $ DB.addHaskeller (fromInteger chatIdNumber) (name) size ( rank) time
+            (Just (ChatId chatIdNumber)) -> liftIO $ DB.addHaskeller (fromInteger chatIdNumber) name size rank time
         pure NoAction
 
     ChangeName -> Model size name rank time True <# do -- change the flag & pure InputName 
@@ -172,7 +172,7 @@ handleAction action model@(Model size name rank time flag) = case action of
 
         pure NoAction
     
-    Grow chatIdForAction newTime -> (Model (size + 1) name rank newTime flag) <# do -- increases IQ by 1
+    Grow chatIdForAction newTime -> Model (size + 1) name rank newTime flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
 
         case chatIdForAction of
