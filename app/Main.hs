@@ -56,7 +56,7 @@ chatIdInt update = case updateMessage update of
         Nothing        -> Nothing
         (Just message) -> Just $ chatId $ messageChat message
 
-getFormattedTop :: [DBModels.Haskeler] -> [(Name, Size)]
+getFormattedTop :: [DBModels.Haskeller] -> [(Name, Size)]
 getFormattedTop = map fromHaskellerToTopEntry
     where
         fromHaskellerToTopEntry haskeller = (DBModels.name haskeller, DBModels.iq haskeller)
@@ -191,13 +191,14 @@ handleAction action model@(Model size name rank time flag) = case action of
     
     LeaderBoard -> model <# do
         topHaskellers <- liftIO(DB.getTop 5)
-        fmtTop = getFormattedTop topHaskellers
+        let formattedTop = getFormattedTop topHaskellers
+        replyText (leaderBoardMessageText formattedTop)
         pure NoAction
 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
 startMessageKeyboard = Telegram.ReplyKeyboardMarkup
-    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/info" ,"/change_name"]
+    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/info" ], ["/change_name", "/leaderboard"]
                                              ]
     , Telegram.replyKeyboardMarkupResizeKeyboard     = Just True
     , Telegram.replyKeyboardMarkupOneTimeKeyboard    = Just False
