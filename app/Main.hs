@@ -215,7 +215,7 @@ main = do
     DB.createHTable
     putStrLn "Please enter telegram token:"
     tgToken     <- getLine
-
+    
     haskellersFromDB <- DB.getAll
 
     putStrLn $ mconcat $ map show haskellersFromDB 
