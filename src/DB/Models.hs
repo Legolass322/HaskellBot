@@ -12,7 +12,7 @@ data Haskeller = Haskeller
     , name :: Text
     , iq :: Int
     , rank :: Text
-    , time :: Text -- fix
+    , time :: Text
     }
 instance Show Haskeller where
     show haskr = unpack $ mconcat

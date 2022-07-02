@@ -10,6 +10,7 @@ import Data.Text
 import DB.Connection (withDBConn)
 import DB.Models (Haskeller)
 
+-- DROP haskellers Table
 dropHTable :: IO ()
 dropHTable = withDBConn $
     \conn -> do 
@@ -17,6 +18,7 @@ dropHTable = withDBConn $
             "DROP TABLE IF EXISTS haskellers"
         print "Table haskellers dropped"
 
+-- CREATE haskellers
 createHTable :: IO()
 createHTable = withDBConn $
     \conn -> do
@@ -26,7 +28,7 @@ createHTable = withDBConn $
    
 
 updateName  :: Int      -- chatId
-            -> Text   -- Name
+            -> Text     -- Name
             -> IO ()
 updateName chatId name = withDBConn $
     \conn -> do
@@ -45,7 +47,7 @@ updateIQ chatId iq = withDBConn $
 
 
 updateRank  :: Int      -- chatId
-            -> Text   -- rank
+            -> Text     -- rank
             -> IO ()
 updateRank chatId rank = withDBConn $
     \conn -> do
@@ -64,9 +66,9 @@ updateTime chatId time = withDBConn $
             (show time, chatId)
 
 addHaskeller    :: Int      -- chatID
-                -> Text   -- name
+                -> Text     -- name
                 -> Int      -- iq
-                -> Text   -- rank
+                -> Text     -- rank
                 -> UTCTime  -- time
                 -> IO ()
 addHaskeller chatId name iq rank time = withDBConn $
@@ -76,12 +78,16 @@ addHaskeller chatId name iq rank time = withDBConn $
             (chatId, name, iq, rank, show time)
         print "Haskeller pushed"
 
+-- SELECT * FROM haskellers
 printAll = withDBConn $
     \conn -> do
         rows <- query_ conn "SELECT * FROM haskellers" :: IO [Haskeller]
         mapM_ print rows
 
-getByChatId :: Int -> (Haskeller -> IO ()) -> IO ()
+
+getByChatId :: Int                  -- chatId
+            -> (Haskeller -> IO ()) -- action to haskeller
+            -> IO ()
 getByChatId chatId action = withDBConn $
     \conn -> do
         haskeller <- query conn 
@@ -89,13 +95,16 @@ getByChatId chatId action = withDBConn $
             (Only chatId)
         mapM_ action haskeller
 
+-- return all rows from haskllers
 getAll :: IO [Haskeller]
 getAll = withDBConn $
     \conn -> do
         rows <- query_ conn "SELECT * FROM haskellers" :: IO [Haskeller]
         return rows
 
-getTop :: Int -> IO [Haskeller]
+-- get top `amount` by iq
+getTop  :: Int              -- amount
+        -> IO [Haskeller]
 getTop amount = withDBConn $
     \conn -> do
         rows <- query conn

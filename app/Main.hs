@@ -11,10 +11,8 @@ import           Data.Text                      ( Text
                                                 )
 import           Data.Time
 import           Data.HashMap.Strict hiding (map)
--- import text for messages
 import           Message.TextCreator
 import           Prelude
--- import ranks for haskeller
 import           Ranking                        ( findNewRank )
 import qualified Telegram.Bot.API              as Telegram
 import           Telegram.Bot.API.GettingUpdates
@@ -56,6 +54,7 @@ chatIdInt update = case updateMessage update of
         Nothing        -> Nothing
         (Just message) -> Just $ chatId $ messageChat message
 
+-- get Formated Haskeller
 getFormattedTop :: [DBModels.Haskeller] -> [(Name, Size)]
 getFormattedTop = map fromHaskellerToTopEntry
     where
@@ -131,6 +130,7 @@ handleAction action model@(Model size name rank time flag) = case action of
                 $ Telegram.SomeReplyKeyboardMarkup startMessageKeyboard
             }
 
+        -- update DB info
         case chatIdForAction of
             Nothing -> liftIO $ return ()
             (Just (ChatId chatIdNumber)) -> liftIO $ DB.addHaskeller (fromInteger chatIdNumber) name size rank time
@@ -175,6 +175,7 @@ handleAction action model@(Model size name rank time flag) = case action of
     Grow chatIdForAction newTime -> Model (size + 1) name rank newTime flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
 
+        -- update DB info
         case chatIdForAction of
                 Nothing -> liftIO $ return ()
                 (Just (ChatId chatIdNumber)) -> do 
@@ -216,7 +217,7 @@ run token time haskellers = do
 main :: IO ()
 main = do
     {-
-    example for db
+    -- example for db
     now <- getCurrentTime
     DB.addHaskeller 1 "name" 0 "rank" now
     DB.printAll
