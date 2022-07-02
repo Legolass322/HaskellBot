@@ -7,7 +7,7 @@ Telegram chat-bot for fun. The idea is to grow your own ”haskeller” with the
 <p>The initial state of “haskeller”:</p>
     <ul>
   <li>IQ = 0</li>
-  <li>name = “”</li>
+  <li>name = “Haskeller”</li>
   <li>rank = "Newbie"</li>
     </ul>
 
