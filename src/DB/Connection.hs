@@ -6,9 +6,10 @@ import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
 
 
-withConn :: String -> (Connection -> IO ()) -> IO ()
+withConn :: String -> (Connection -> IO a) -> IO a
 withConn dbName action = do
     conn <- open dbName
-    action conn
+    result <- action conn
     close conn
+    return result
 withDBConn = withConn "db.db"

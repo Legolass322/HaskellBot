@@ -4,23 +4,24 @@ module DB.Models where
 import Control.Applicative
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
+import Data.Text
 
 
 data Haskeller = Haskeller 
     { chatId :: Int
-    , name :: String
+    , name :: Text
     , iq :: Int
-    , rank :: String
-    , time :: String -- fix
+    , rank :: Text
+    , time :: Text -- fix
     }
 instance Show Haskeller where
-    show haskr = mconcat
-        [ show $ "Haskr: " 
-        , show (chatId haskr)
+    show haskr = unpack $ mconcat
+        [  "Haskr: " 
+        , pack $ show (chatId haskr)
         , " - name: "
         , name haskr
         , ", iq: "
-        , show (iq haskr)
+        , pack $ show (iq haskr)
         , ", rank: "
         , rank haskr
         , ", time: "

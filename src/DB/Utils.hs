@@ -5,6 +5,7 @@ import Control.Applicative
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
 import Data.Time
+import Data.Text
 
 import DB.Connection (withDBConn)
 import DB.Models (Haskeller)
@@ -25,7 +26,7 @@ createHTable = withDBConn $
    
 
 updateName  :: Int      -- chatId
-            -> String   -- Name
+            -> Text   -- Name
             -> IO ()
 updateName chatId name = withDBConn $
     \conn -> do
@@ -44,7 +45,7 @@ updateIQ chatId iq = withDBConn $
 
 
 updateRank  :: Int      -- chatId
-            -> String   -- rank
+            -> Text   -- rank
             -> IO ()
 updateRank chatId rank = withDBConn $
     \conn -> do
@@ -63,9 +64,9 @@ updateTime chatId time = withDBConn $
             (show time, chatId)
 
 addHaskeller    :: Int      -- chatID
-                -> String   -- name
+                -> Text   -- name
                 -> Int      -- iq
-                -> String   -- rank
+                -> Text   -- rank
                 -> UTCTime  -- time
                 -> IO ()
 addHaskeller chatId name iq rank time = withDBConn $
@@ -87,5 +88,11 @@ getByChatId chatId action = withDBConn $
             "SELECT * FROM haskellers WHERE chatId = ? LIMIT 1"
             (Only chatId)
         mapM_ action haskeller
+
+getAll :: IO [Haskeller]
+getAll = withDBConn $
+    \conn -> do
+        rows <- query_ conn "SELECT * FROM haskellers" :: IO [Haskeller]
+        return rows
         
         
