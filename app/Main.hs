@@ -61,21 +61,21 @@ data Model = Model Size Name RankName LastGrowth ChangeNameFlag
 
 -- | Actions bot can perform.
 data Action
-  = NoAction                        -- ^ Perform no action.
-  | ShowStatus                      -- ^ Action to show all info available about the haskeller
+  = NoAction                               -- ^ Perform no action.
+  | ShowInfo                               -- ^ Action to show all info available about the haskeller
   | GrowCommand (Maybe ChatId)                            -- ^ Action to increase IQ of haskeller
-  | NotifyThatCannotGrow NominalDiffTime
-  | Grow (Maybe ChatId) UTCTime
-  | ChangeName       -- ^ Action to changing name of the haskeller
-  | Rank                            -- ^ Action to show rank of the haskeller
-  | NewRankNotification (Maybe ChatId) RankName    -- ^ Action to show notification about new Rank
-  | Start (Maybe ChatId) -- | Display start message
-  | InputName (Maybe ChatId) Text
+  | NotifyThatCannotGrow NominalDiffTime   -- ^ ?
+  | Grow (Maybe ChatId) UTCTime                           -- ^ ?
+  | ChangeName                             -- ^ Action to change the flag and pure InputName
+  | NewRankNotification (Maybe ChatId) RankName           -- ^ Action to show notification about new Rank
+  | Start (Maybe ChatId)                                  -- ^ Display start message
+  | InputName (Maybe ChatId) Text                         -- ^ Action to change name of haskeller 
   deriving (Show)
 
 -- | Bot application.
 bot :: UTCTime -> BotApp Model Action
-bot time = BotApp { botInitialModel = Model 0 "Just Somebody" "Newbie" time False
+
+bot time = BotApp { botInitialModel = Model 0 "Haskeller" "Newbie" time False
                   , botAction       = flip handleUpdate
                   , botHandler      = handleAction
                   , botJobs         = []
@@ -104,9 +104,8 @@ handleUpdate _ update =
     parseUpdate
         (ChangeName <$  command "change_name"
         <|> GrowCommand maybeChatId <$  command "grow"
-        <|> Rank <$  command "rank"
-        <|> ShowStatus <$  command "status"
         <|> Start maybeChatId <$  command "start"
+        <|> ShowInfo <$  command "info"
         <|> InputName maybeChatId <$> text) update
     where
         maybeChatId = chatIdInt update
@@ -127,19 +126,21 @@ handleAction action model@(Model size name rank time flag) = case action of
             Nothing -> liftIO $ return ()
             (Just (ChatId chatIdNumber)) -> liftIO $ DB.addHaskeller (fromInteger chatIdNumber) (name) size ( rank) time
         pure NoAction
-    ChangeName -> Model size name rank time True <# do -- change name
+
+    ChangeName -> Model size name rank time True <# do -- change the flag & pure InputName 
         replyText enterNewNameText
         pure NoAction
+    
     GrowCommand chatIdForAction -> 
         model <# do
-            currentTime <- liftIO (getCurrentTime) 
+            currentTime <- liftIO getCurrentTime
             if checkForGrowth time currentTime cooldown
             then
                 pure (Grow chatIdForAction currentTime) 
             else 
                 pure (NotifyThatCannotGrow (abs(diffUTCTime time currentTime)))
 
-    InputName chatIdForAction newName -> if flag
+    InputName chatIdForAction newName -> if flag -- change name if flag, else pure NoAction
         then Model size newName rank time flag <# do
             replyText (changeNameMessageText name newName)
 
@@ -150,13 +151,12 @@ handleAction action model@(Model size name rank time flag) = case action of
             pure NoAction
         else model <# pure NoAction
 
-    ShowStatus -> model <# do -- shows all available information about haskeller
+    ShowInfo -> model <# do -- shows all available information about haskeller
         replyText (statusMessageText name (pack (show size)) rank)
         pure NoAction
 
     NewRankNotification chatIdForAction newRank -> Model size name newRank time flag <# do -- notifies user about new rank and changes new rank
         replyText (newRankMessageText name newRank)
-
         case chatIdForAction of
                 Nothing -> liftIO $ return ()
                 (Just (ChatId chatIdNumber)) -> liftIO $ DB.updateRank (fromInteger chatIdNumber) newRank
@@ -176,15 +176,14 @@ handleAction action model@(Model size name rank time flag) = case action of
             Nothing        -> pure NoAction
             (Just newRank) -> pure (NewRankNotification chatIdForAction newRank)
 
-    NotifyThatCannotGrow deltaTime -> model <# do
-        replyText "You cannot grow"
+    NotifyThatCannotGrow deltaTime -> model <# do -- ?
+        replyText (cannotGrowMessageText name)
         pure NoAction
 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
 startMessageKeyboard = Telegram.ReplyKeyboardMarkup
-    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/change_name"]
-                                             , ["/status", "/rank"]
+    { Telegram.replyKeyboardMarkupKeyboard = [ ["/grow", "/info" ,"/change_name"]
                                              ]
     , Telegram.replyKeyboardMarkupResizeKeyboard     = Just True
     , Telegram.replyKeyboardMarkupOneTimeKeyboard    = Just False
