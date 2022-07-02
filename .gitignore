@@ -1,3 +1,5 @@
 .stack-work/
 src/tg_bot_key.txt
 *~
+dist-newstyle/
+db.db

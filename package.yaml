@@ -30,6 +30,9 @@ dependencies:
 - telegram-bot-simple
 - text
 - time
+- sqlite-simple
+# - hashmap
+- unordered-containers
 
 library:
   source-dirs: src
