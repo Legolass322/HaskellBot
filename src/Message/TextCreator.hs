@@ -3,6 +3,7 @@ module Message.TextCreator where
 
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time (NominalDiffTime)
 
 -- >>> enterNewNameText
 -- Please enter new name:
@@ -23,8 +24,8 @@ growMessageText name size = mconcat ["\x2728 Excellent! Now your ", name, " is s
 
 -- >>> cannotGrowMessageText
 -- Please wait, your Haskeler still growing
-cannotGrowMessageText :: Text -> Text
-cannotGrowMessageText name = mconcat ["\x1F558 Please wait, your ", name," still growing"]
+cannotGrowMessageText :: Text -> NominalDiffTime -> Text
+cannotGrowMessageText name time = mconcat ["\x1F558 Please wait ", T.pack (show time),  "ec more, your ", name," still growing"]
 
 -- >>> newRankMessageText "Ivan" "Haskell Bot Developer"
 -- New Rank!

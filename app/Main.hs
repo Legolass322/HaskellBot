@@ -43,7 +43,8 @@ type LastGrowth = UTCTime
 type ChangeNameFlag = Bool
 
 -- | Cooldown of growth in seconds
-cooldown = 0
+cooldown :: Num a => a
+cooldown = 10
 
 {- | function that shows how to distinguish 'conversations'
  ('Conversations' are distinguished by chat id)
@@ -138,7 +139,7 @@ handleAction action model@(Model size name rank time flag) = case action of
             then
                 pure (Grow chatIdForAction currentTime) 
             else 
-                pure (NotifyThatCannotGrow (abs(diffUTCTime time currentTime)))
+                pure (NotifyThatCannotGrow (cooldown - abs(diffUTCTime time currentTime)))
 
     InputName chatIdForAction newName -> if flag -- change name if flag, else pure NoAction
         then Model size newName rank time flag <# do
@@ -177,7 +178,7 @@ handleAction action model@(Model size name rank time flag) = case action of
             (Just newRank) -> pure (NewRankNotification chatIdForAction newRank)
 
     NotifyThatCannotGrow deltaTime -> model <# do -- ?
-        replyText (cannotGrowMessageText name)
+        replyText (cannotGrowMessageText name deltaTime)
         pure NoAction
 
 -- | A keyboard with actions
