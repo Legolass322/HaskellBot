@@ -94,5 +94,13 @@ getAll = withDBConn $
     \conn -> do
         rows <- query_ conn "SELECT * FROM haskellers" :: IO [Haskeller]
         return rows
-        
+
+getTop  :: Int -- Amount
+        -> IO [Haskeller]
+getTop amount = withDBConn $
+    \conn -> do
+        rows <- query conn 
+            "SELECT * FROM haskellers ORDER BY iq LIMIT ?"
+            (Only amount)
+        return rows
         
