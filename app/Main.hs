@@ -215,14 +215,10 @@ main = do
     DB.createHTable
     putStrLn "Please enter telegram token:"
     tgToken     <- getLine
-
-<<<<<<< HEAD
-    run (Telegram.Token (pack tgToken))
-=======
+    
     haskellersFromDB <- DB.getAll
 
     putStrLn $ mconcat $ map show haskellersFromDB 
 
     currentTime <- getCurrentTime
     run (Telegram.Token (pack tgToken)) currentTime haskellersFromDB
->>>>>>> b3273864eb2c71af63d7d2e325c6b28427f6c3a9
