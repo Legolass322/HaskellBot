@@ -25,8 +25,13 @@ source-repository head
 
 library
   exposed-modules:
+      DB.Connection
+      DB.Models
+      DB.TableCreator
+      DB.Utils
       Message.TextCreator
       Ranking
+      TimeApi
   other-modules:
       Paths_haskellbot
   hs-source-dirs:
@@ -43,6 +48,7 @@ library
     , telegram-bot-simple
     , text
     , time
+    , unordered-containers
   default-language: Haskell2010
 
 executable haskellbot-exe
@@ -65,6 +71,7 @@ executable haskellbot-exe
     , telegram-bot-simple
     , text
     , time
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite haskellbot-test
@@ -88,4 +95,5 @@ test-suite haskellbot-test
     , telegram-bot-simple
     , text
     , time
+    , unordered-containers
   default-language: Haskell2010
