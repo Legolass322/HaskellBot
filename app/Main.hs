@@ -56,6 +56,12 @@ chatIdInt update = case updateMessage update of
         Nothing        -> Nothing
         (Just message) -> Just $ chatId $ messageChat message
 
+getFormattedTop :: [DBModels.Haskeler] -> [(Name, Size)]
+getFormattedTop = map fromHaskellerToTopEntry
+    where
+        fromHaskellerToTopEntry haskeller = (DBModels.name haskeller, DBModels.iq haskeller)
+
+
 -- | Bot conversation state model.
 data Model = Model Size Name RankName LastGrowth ChangeNameFlag 
     deriving Show
@@ -71,6 +77,7 @@ data Action
   | NewRankNotification (Maybe ChatId) RankName           -- ^ Action to show notification about new Rank
   | Start (Maybe ChatId)                                  -- ^ Display start message
   | InputName (Maybe ChatId) Text                         -- ^ Action to change name of haskeller 
+  | LeaderBoard
   deriving (Show)
 
 -- | Bot application.
@@ -107,6 +114,7 @@ handleUpdate _ update =
         <|> GrowCommand maybeChatId <$  command "grow"
         <|> Start maybeChatId <$  command "start"
         <|> ShowInfo <$  command "info"
+        <|> LeaderBoard <$ command "leaderboard"
         <|> InputName maybeChatId <$> text) update
     where
         maybeChatId = chatIdInt update
@@ -180,6 +188,11 @@ handleAction action model@(Model size name rank time flag) = case action of
     NotifyThatCannotGrow deltaTime -> model <# do -- ?
         replyText (cannotGrowMessageText name deltaTime)
         pure NoAction
+    
+    LeaderBoard -> model <# do
+        topHaskellers <- liftIO(DB.getTop 5)
+        fmtTop = getFormattedTop topHaskellers
+        pure NoAction
 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
@@ -215,7 +228,7 @@ main = do
     DB.createHTable
     putStrLn "Please enter telegram token:"
     tgToken     <- getLine
-    
+
     haskellersFromDB <- DB.getAll
 
     putStrLn $ mconcat $ map show haskellersFromDB 
