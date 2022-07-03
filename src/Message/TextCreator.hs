@@ -69,7 +69,9 @@ statusMessageText name size rank =
 -- *Each 10 IQ the rank changes to the new one
 --
 -- The process of growing your haskelist takes some time
--- Wait 10 seconds after /grow command to grow again!
+-- After each /grow command time to education is increasing
+-- The higher the IQ, the more time it takes to raise it
+-- Please wait after /grow command to grow again!
 --
 -- Enjoy!
 
@@ -86,7 +88,9 @@ startMessageText = T.unlines
     , "*The rank changes to the new one each 10 IQ"
     , ""
     , "\x1F558 The process of growing your haskelist takes some time"
-    , "Wait 10 seconds after /grow command to grow again!"
+    , "After each /grow command time to education is increasing"
+    , "The higher the IQ, the more time it takes to raise it"
+    , "Please wait after /grow command to grow again!"
     , ""
     , "Enjoy!"
     ]

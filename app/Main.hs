@@ -41,8 +41,9 @@ type LastGrowth = UTCTime
 type ChangeNameFlag = Bool
 
 -- | Cooldown of growth in seconds
-cooldown :: Num a => a
-cooldown = 10
+
+cooldown :: (Integral a, Num b) => a -> b
+cooldown = fromIntegral
 
 {- | function that shows how to distinguish 'conversations'
  ('Conversations' are distinguished by chat id)
@@ -62,7 +63,7 @@ getFormattedTop = map fromHaskellerToTopEntry
 
 
 -- | Bot conversation state model.
-data Model = Model Size Name RankName LastGrowth ChangeNameFlag 
+data Model = Model Size Name RankName LastGrowth ChangeNameFlag
     deriving Show
 
 -- | Actions bot can perform.
@@ -89,7 +90,7 @@ bot time = BotApp { botInitialModel = Model 0 "Haskeller" "Newbie" time False
                   }
 
 -- | bot for several 'conversations'
-sevBot time haskellers = BotApp {   
+sevBot time haskellers = BotApp {
     botInitialModel = hashmapOfHaskellers,
     botAction = botAction intermediateBot,
     botHandler = botHandler intermediateBot,
@@ -139,15 +140,15 @@ handleAction action model@(Model size name rank time flag) = case action of
     ChangeName -> Model size name rank time True <# do -- change the flag & pure InputName 
         replyText enterNewNameText
         pure NoAction
-    
-    GrowCommand chatIdForAction -> 
+
+    GrowCommand chatIdForAction ->
         model <# do
             currentTime <- liftIO getCurrentTime
-            if checkForGrowth time currentTime cooldown
+            if checkForGrowth time currentTime (cooldown size)
             then
-                pure (Grow chatIdForAction currentTime) 
-            else 
-                pure (NotifyThatCannotGrow (cooldown - abs(diffUTCTime time currentTime)))
+                pure (Grow chatIdForAction currentTime)
+            else
+                pure (NotifyThatCannotGrow (cooldown (size + 1) - abs(diffUTCTime time currentTime)))
 
     InputName chatIdForAction newName -> if flag -- change name if flag, else pure NoAction
         then Model size newName rank time flag <# do
@@ -171,14 +172,14 @@ handleAction action model@(Model size name rank time flag) = case action of
                 (Just (ChatId chatIdNumber)) -> liftIO $ DB.updateRank (fromInteger chatIdNumber) newRank
 
         pure NoAction
-    
+
     Grow chatIdForAction newTime -> Model (size + 1) name rank newTime flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
 
         -- update DB info
         case chatIdForAction of
                 Nothing -> liftIO $ return ()
-                (Just (ChatId chatIdNumber)) -> do 
+                (Just (ChatId chatIdNumber)) -> do
                         liftIO $ DB.updateIQ (fromInteger chatIdNumber) (size + 1)
                         liftIO $ DB.updateTime (fromInteger chatIdNumber) newTime
 
@@ -189,7 +190,7 @@ handleAction action model@(Model size name rank time flag) = case action of
     NotifyThatCannotGrow deltaTime -> model <# do -- ?
         replyText (cannotGrowMessageText name deltaTime)
         pure NoAction
-    
+
     LeaderBoard -> model <# do
         topHaskellers <- liftIO(DB.getTop 5)
         let formattedTop = getFormattedTop topHaskellers
@@ -233,7 +234,7 @@ main = do
 
     haskellersFromDB <- DB.getAll
 
-    putStrLn $ mconcat $ map show haskellersFromDB 
+    putStrLn $ mconcat $ map show haskellersFromDB
 
     currentTime <- getCurrentTime
     run (Telegram.Token (pack tgToken)) currentTime haskellersFromDB
