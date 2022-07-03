@@ -65,6 +65,17 @@ updateTime chatId time = withDBConn $
             "UPDATE haskellers SET time = ? WHERE chatId = ?"
             (show time, chatId)
 
+checkId :: Int  -- chatId
+        -> (Connection -> IO Bool)
+checkId chatId =
+    \conn -> do
+        isset <- query conn 
+            "SELECT * FROM haskellers WHERE chatId = ?"
+            (Only chatId) :: IO [Haskeller]
+        case isset of
+            [] -> return False
+            _ -> return True
+
 addHaskeller    :: Int      -- chatID
                 -> Text     -- name
                 -> Int      -- iq
@@ -73,16 +84,13 @@ addHaskeller    :: Int      -- chatID
                 -> IO ()
 addHaskeller chatId name iq rank time = withDBConn $
     \conn -> do
-        rows <- query conn 
-            "SELECT * FROM haskeller WHERE chatId = ?"
-            (Only chatId)
-        executeIfEmpty rows
+        isset <- checkId chatId conn
+        case isset of
+            True -> return ()
+            False -> execute conn 
+                "INSERT INTO haskellers (chatId, name, iq, rank, time) VALUES (?, ?, ?, ?, ?)" 
+                (chatId, name, iq, rank, show time)
         print "Haskeller pushed"
-    where
-        executeIfEmpty [] = execute conn 
-            "INSERT INTO haskellers (chatId, name, iq, rank, time) VALUES (?, ?, ?, ?, ?)" 
-            (chatId, name, iq, rank, show time)
-        executeIfEmpty _ = return ""
 
 -- SELECT * FROM haskellers
 printAll = withDBConn $
