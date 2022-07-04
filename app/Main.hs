@@ -9,6 +9,7 @@ import           Data.Text                      ( Text
                                                 , append
                                                 , pack, unpack
                                                 )
+-- import           GHC.IO.Encoding
 import           Data.Time
 import           Data.HashMap.Strict hiding (map)
 import           Message.TextCreator
@@ -21,7 +22,9 @@ import           Telegram.Bot.Simple
 import           Telegram.Bot.Simple.Conversation
 import           Telegram.Bot.Simple.Debug
 import           Telegram.Bot.Simple.UpdateParser
+
 import           TimeApi
+import qualified MemeModule as MM
 
 -- import database stuff
 import qualified DB.Utils as DB
@@ -60,6 +63,24 @@ getFormattedTop = map fromHaskellerToTopEntry
     where
         fromHaskellerToTopEntry haskeller = (DBModels.name haskeller, DBModels.iq haskeller)
 
+getMemeRequest :: Int -> Maybe ChatId -> Maybe Telegram.SendPhotoRequest 
+getMemeRequest size chatIdForAction = do
+        photoFile <- MM.getPhotoFile $ toInteger size
+        chatIdNumber <- chatIdForAction
+        Just $ Telegram.SendPhotoRequest {
+        Telegram.sendPhotoChatId = SomeChatId chatIdNumber,
+        Telegram.sendPhotoPhoto = photoFile,
+        Telegram.sendPhotoThumb = Nothing,
+        Telegram.sendPhotoCaption = Nothing,
+        Telegram.sendPhotoParseMode = Nothing,
+        Telegram.sendPhotoCaptionEntities = Nothing,
+        Telegram.sendPhotoDisableNotification = Just False,
+        Telegram.sendPhotoReplyToMessageId = Nothing,
+        Telegram.sendPhotoAllowSendingWithoutReply = Just True,
+        Telegram.sendPhotoReplyMarkup = Nothing,
+        Telegram.sendPhotoProtectContent  = Just False
+    }
+
 
 -- | Bot conversation state model.
 data Model = Model Size Name RankName LastGrowth ChangeNameFlag 
@@ -77,6 +98,7 @@ data Action
   | Start (Maybe ChatId)                                  -- ^ Display start message
   | InputName (Maybe ChatId) Text                         -- ^ Action to change name of haskeller 
   | LeaderBoard
+  | SendMeme (Maybe ChatId)
   deriving (Show)
 
 -- | Bot application.
@@ -114,6 +136,7 @@ handleUpdate _ update =
         <|> Start maybeChatId <$  command "start"
         <|> ShowInfo <$  command "info"
         <|> LeaderBoard <$ command "leaderboard"
+        <|> SendMeme maybeChatId <$ command "meme"
         <|> InputName maybeChatId <$> text) update
     where
         maybeChatId = chatIdInt update
@@ -170,7 +193,7 @@ handleAction action model@(Model size name rank time flag) = case action of
                 Nothing -> liftIO $ return ()
                 (Just (ChatId chatIdNumber)) -> liftIO $ DB.updateRank (fromInteger chatIdNumber) newRank
 
-        pure NoAction
+        pure (SendMeme chatIdForAction)
     
     Grow chatIdForAction newTime -> Model (size + 1) name rank newTime flag <# do -- increases IQ by 1
         replyText (growMessageText name (pack (show (size + 1)))) -- If new rank is reached, notifies about it and change it
@@ -196,6 +219,27 @@ handleAction action model@(Model size name rank time flag) = case action of
         replyText (leaderBoardMessageText formattedTop)
         pure NoAction
 
+    SendMeme chatIdForAction -> model <# do
+
+        liftIO $ putStrLn "Entered to the action"
+ 
+        liftIO $ putStrLn $ show $ MM.getMemePath $ toInteger size
+        -- liftIO $ putStrLn $ show $ MM.getInputFile $ toInteger size
+        -- liftIO $ putStrLn $ show $ MM.getPhotoFile $ toInteger size
+        
+        case getMemeRequest size chatIdForAction of
+            Nothing -> return ()
+            (Just request) -> do
+                liftIO $ putStrLn "Sending request"
+                response <- liftClientM  $ Telegram.sendPhoto request
+                liftIO $ putStrLn $ show response
+                return ()
+        
+        pure NoAction
+
+
+
+ 
 -- | A keyboard with actions
 startMessageKeyboard :: Telegram.ReplyKeyboardMarkup
 startMessageKeyboard = Telegram.ReplyKeyboardMarkup
@@ -227,6 +271,7 @@ main = do
     DB.printAll
     DB.getByChatId 1 (print . (++"GET") . show)
     -}
+    -- setLocaleEncoding utf8
     DB.createHTable
     putStrLn "Please enter telegram token:"
     tgToken     <- getLine

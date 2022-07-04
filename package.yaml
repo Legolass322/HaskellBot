@@ -33,6 +33,7 @@ dependencies:
 - sqlite-simple
 # - hashmap
 - unordered-containers
+- transformers
 
 library:
   source-dirs: src
