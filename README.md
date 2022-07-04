@@ -1,6 +1,6 @@
 # HaskellBot
 Grow your own Haskeller!
-<a href="https://t.me/Haskeller_bot">The link to @Haskeller_bot</a>
+The link to <a href="https://t.me/Haskeller_bot">@Haskeller_bot</a>
 
 ![image](https://user-images.githubusercontent.com/84839431/177187973-3f844cbe-1564-4ad3-89b2-a35a6473fe27.png)
 
