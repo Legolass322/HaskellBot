@@ -31,17 +31,13 @@ import qualified DB.Models as DBModels
  where necessary info is stored
 -}
 type Size = Int
-
 type Name = Text
-
 type RankName = Text
-
 type LastGrowth = UTCTime
-
 type ChangeNameFlag = Bool
 
--- | Cooldown of growth in seconds
 
+-- | Cooldown of growth in seconds
 cooldown :: (Integral a, Num b) => a -> b
 cooldown = fromIntegral
 
@@ -51,11 +47,12 @@ cooldown = fromIntegral
 updateToConversation :: Telegram.Update -> Maybe ChatId
 updateToConversation = chatIdInt
 
+-- Get chat id from Telegram.Update
 chatIdInt update = case updateMessage update of
         Nothing        -> Nothing
         (Just message) -> Just $ chatId $ messageChat message
 
--- get Formated Haskeller
+-- get Formated Haskeller for leaderboard
 getFormattedTop :: [DBModels.Haskeller] -> [(Name, Size)]
 getFormattedTop = map fromHaskellerToTopEntry
     where
@@ -63,17 +60,22 @@ getFormattedTop = map fromHaskellerToTopEntry
 
 
 -- | Bot conversation state model.
+-- Size - size (or iq) of Haskeller
+-- Name - name of Haskeller
+-- RankName - name of rank of Haskeller
+-- LastGrowth - last successful grow time
+-- ChangeNameFlag - to process change_name command in several steps
 data Model = Model Size Name RankName LastGrowth ChangeNameFlag
     deriving Show
 
 -- | Actions bot can perform.
 data Action
-  = NoAction                               -- ^ Perform no action.
-  | ShowInfo                               -- ^ Action to show all info available about the haskeller
-  | GrowCommand (Maybe ChatId)                            -- ^ Action to increase IQ of haskeller
-  | NotifyThatCannotGrow NominalDiffTime   -- ^ ?
-  | Grow (Maybe ChatId) UTCTime                           -- ^ ?
-  | ChangeName                             -- ^ Action to change the flag and pure InputName
+  = NoAction                                              -- ^ Perform no action.
+  | ShowInfo                                              -- ^ Action to show all info available about the haskeller
+  | GrowCommand (Maybe ChatId)                            -- ^ Action to process grow request
+  | NotifyThatCannotGrow NominalDiffTime                  -- ^ Action to notify that user cannot grow haskellist right now
+  | Grow (Maybe ChatId) UTCTime                           -- ^ Action to increase IQ of haskeller
+  | ChangeName                                            -- ^ Action to change the flag and pure InputName
   | NewRankNotification (Maybe ChatId) RankName           -- ^ Action to show notification about new Rank
   | Start (Maybe ChatId)                                  -- ^ Display start message
   | InputName (Maybe ChatId) Text                         -- ^ Action to change name of haskeller 
