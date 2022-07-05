@@ -1,15 +1,37 @@
+{-# LANGUAGE OverloadedStrings #-}
+module Bot where
+
+-- import project modules
+import           Control.Applicative            ( (<|>) )
+import           Control.Monad.IO.Class         ( liftIO )
+import           Data.Text                      ( Text
+                                                , append
+                                                , pack, unpack
+                                                )
+import           Data.Time
+import           Data.HashMap.Strict hiding (map)
+import           Message.TextCreator
+import           Prelude
+import           Ranking                        ( findNewRank )
+import qualified Telegram.Bot.API              as Telegram
+import           Telegram.Bot.API.GettingUpdates
+import           Telegram.Bot.API.Types
+import           Telegram.Bot.Simple
+import           Telegram.Bot.Simple.Conversation
+import           Telegram.Bot.Simple.Debug
+import           Telegram.Bot.Simple.UpdateParser
+import           TimeApi
+
 -- import database stuff
 import qualified DB.Utils as DB
 import qualified DB.Models as DBModels
 
-{- | type aliases to semantically show
- where necessary info is stored
--}
-type Size = Int
-type Name = Text
-type RankName = Text
-type LastGrowth = UTCTime
-type ChangeNameFlag = Bool
+-- | type aliases to semantically show where necessary info is stored
+type Size = Int             -- ^ size or iq of Haskeller
+type Name = Text            -- ^ name of Haskeller
+type RankName = Text        -- ^ name of rank of Haskeller
+type LastGrowth = UTCTime   -- ^ time of last successful grow action
+type ChangeNameFlag = Bool  -- ^ flag for changing name (if True bot read any next message in chat)
 
 
 -- | Cooldown of growth in seconds
@@ -22,10 +44,12 @@ cooldown = fromIntegral
 updateToConversation :: Telegram.Update -> Maybe ChatId
 updateToConversation = chatIdInt
 
+
 -- Get chat id from Telegram.Update
 chatIdInt update = case updateMessage update of
         Nothing        -> Nothing
         (Just message) -> Just $ chatId $ messageChat message
+
 
 -- get Formated Haskeller for leaderboard
 getFormattedTop :: [DBModels.Haskeller] -> [(Name, Size)]
@@ -35,12 +59,12 @@ getFormattedTop = map fromHaskellerToTopEntry
 
 
 -- | Bot conversation state model.
--- Size - size (or iq) of Haskeller
--- Name - name of Haskeller
--- RankName - name of rank of Haskeller
--- LastGrowth - last successful grow time
--- ChangeNameFlag - to process change_name command in several steps
-data Model = Model Size Name RankName LastGrowth ChangeNameFlag
+data Model = Model
+     Size           -- ^ Size - size (or iq) of Haskeller
+     Name           -- ^ Name - name of Haskeller
+     RankName       -- ^ RankName - name of rank of Haskeller
+     LastGrowth     -- ^ LastGrowth - last successful grow time
+     ChangeNameFlag -- ^ ChangeNameFlag - to process change_name command in several steps
     deriving Show
 
 -- | Actions bot can perform.
@@ -54,7 +78,7 @@ data Action
   | NewRankNotification (Maybe ChatId) RankName           -- ^ Action to show notification about new Rank
   | Start (Maybe ChatId)                                  -- ^ Display start message
   | InputName (Maybe ChatId) Text                         -- ^ Action to change name of haskeller 
-  | LeaderBoard
+  | LeaderBoard                                           -- ^ Action to show leaderboard (top 5 Haskellers)
   deriving (Show)
 
 -- | Bot application.
