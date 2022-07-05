@@ -22,10 +22,47 @@ Telegram chat-bot for fun. The idea is to grow your own ”haskeller” with the
 ```
 git clone https://github.com/Legolass322/HaskellBot
 ```
-#### Stack 
+
+#### Installing Stack
+Stack is a tool to manage Haskell projects. We used it while development of out product. To install Stack tool:
+
+For most Un*x operating systems, the easiest way to install is to run:
+
+```sh
+curl -sSL https://get.haskellstack.org/ | sh
+```
+
+or:
+
+```sh
+wget -qO- https://get.haskellstack.org/ | sh
+```
+
+On Windows, you can download and install <a href=https://get.haskellstack.org/stable/windows-x86_64-installer.exe>the Windows 64-bit Installer</a>.
+(this information from <a href=https://docs.haskellstack.org/en/stable/README/>this documentation</a>)
+ 
+#### GHC
+GHC is a haskell compiler. It needed to compile your haskell code. Stack can download it:
+
+```sh
+stack setup
+```
+
+#### Using project via Stack
+
+Building project. It will install all dependencies.
 ```sh
 stack build
+```
+
+To run last builded version of our project
+```sh
 stack run
+```
+
+To use our project you need input telegram bot API token.
+You can find all necessary information about token creation process <a href=https://core.telegram.org/bots/faq#how-do-i-create-a-bot>here</a> 
+```sh
 Please enter telegram token:
 <Your Telegram Bot API Token>
 ```
