@@ -151,7 +151,7 @@ handleAction action model@(Model size name rank time flag) = case action of
                 pure (NotifyThatCannotGrow (cooldown (size + 1) - abs(diffUTCTime time currentTime)))
 
     InputName chatIdForAction newName -> if flag -- change name if flag, else pure NoAction
-        then Model size newName rank time flag <# do
+        then Model size newName rank time False <# do
             replyText (changeNameMessageText name newName)
 
             case chatIdForAction of
