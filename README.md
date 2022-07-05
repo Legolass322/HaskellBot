@@ -1,5 +1,10 @@
 # HaskellBot
 Grow your own Haskeller!
+The link to <a href="https://t.me/Haskeller_bot">@Haskeller_bot</a>
+
+![image](https://user-images.githubusercontent.com/84839431/177187973-3f844cbe-1564-4ad3-89b2-a35a6473fe27.png)
+
+
 Telegram chat-bot for fun. The idea is to grow your own ”haskeller” with the following chat commands: /change_name, /grow, /info, /leaderboard
 - `/change_name` - to change the name of your haskeller
 - `/grow` - to grow by 1 IQ of your “haskeller” and see the current IQ

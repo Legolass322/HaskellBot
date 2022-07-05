@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Bot
       DB.Connection
       DB.Models
       DB.TableCreator
